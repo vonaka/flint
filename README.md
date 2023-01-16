@@ -5,7 +5,7 @@ Flint computes expected latencies for the selected set of AWS clients using diff
 ![Screenshot](flint.png)
 
 Flint imports latency table from [cloudping](https://www.cloudping.co/grid/p_90/timeframe/1D)
-with the 90th percentile and a single day timeframe. One can change a link in ![config.go](config.go).
+with the 90th percentile and a single day timeframe. One can change the link in ![config.go](config.go).
 
 ## Installation
 
@@ -20,6 +20,6 @@ It supports mouse events and the following hotkeys:
 
 - __Tab__: switch the focus
 - __p__: toggle the protocol
-- __Esc__: print the current latency table
+- __Esc__: print current latency table
 - __e__: export latency table for the selected replicas and clients
 - __q__: quit
