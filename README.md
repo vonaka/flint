@@ -15,6 +15,9 @@ go install github.com/vonaka/flint@latest
 
 ## Navigation
 
+Flint's text-based UI is powered by [tview](https://github.com/rivo/tview).
+It supports mouse events and the following hotkeys:
+
 - __Tab__: switch the focus
 - __p__: toggle the protocol
 - __q__: quit
