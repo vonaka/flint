@@ -4,12 +4,13 @@ Flint computes expected latencies for the selected set of AWS clients using diff
 
 ![Screenshot](flint.png)
 
-Flint imports latency table from [cloudping](https://www.cloudping.co/grid/p_90/timeframe/1D) with the 90th percentile and a one day timeframe. One can change a link in ![config.go](config.go).
+Flint imports latency table from [cloudping](https://www.cloudping.co/grid/p_90/timeframe/1D)
+with the 90th percentile and a single day timeframe. One can change a link in ![config.go](config.go).
 
 ## Installation
 
 ```bash
-go get github.com/vonaka/flint
+go install github.com/vonaka/flint@latest
 ```
 
 ## Navigation
