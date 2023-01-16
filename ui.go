@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v2"
@@ -15,6 +16,8 @@ var (
 	replicasPr tview.Primitive
 
 	protocolPr *tview.DropDown
+
+	pages *tview.Pages
 
 	quorumPr      *tview.TextView
 	leaderPr      *tview.TextView
@@ -103,7 +106,7 @@ func Redraw(t *LatencyTable) {
 	case "Paxos":
 		UpdateClientInfo(leaderP, nil, p, t, false, false, []Algorithm{sp, c, n})
 	case "N²Paxos":
-		UpdateClientInfo(leaderN, nil, p, t, false, true, []Algorithm{sp, c, p})
+		UpdateClientInfo(leaderN, nil, n, t, false, true, []Algorithm{sp, c, p})
 	case "CURP (N²Paxos)":
 		UpdateClientInfo(leaderC, nil, c, t, true, true, []Algorithm{sp, p, n})
 	}
@@ -202,6 +205,34 @@ func UpdateClientInfo(leader string, quorum Quorum, alg Algorithm, t *LatencyTab
 		}
 	}
 	clientsInfoPr.SetText(ls)
+}
+
+func NewExportBox(t *LatencyTable) {
+	filename := "latency.txt"
+	modal := func(p tview.Primitive, w, h int) tview.Primitive {
+		return tview.NewGrid().SetColumns(0, w, 0).SetRows(0, h, 0).AddItem(p, 1, 1, 1, 1, 0, 0, true)
+	}
+	form := tview.NewForm().AddInputField("Save as", filename, 15, nil, func(f string) {
+		filename = f
+	})
+	form.SetBorder(true).SetTitle("Export latency table")
+	form.SetLabelColor(tcell.ColorWhite)
+	form.SetFieldTextColor(tcell.ColorWhite)
+	form.SetFieldBackgroundColor(tcell.ColorGrey)
+	form.AddButton("Export", func() {
+		if filename != "" {
+			fs := strings.Split(filename, ".")
+			if !(len(fs) >= 2 && fs[1] == "go") {
+				// TODO: check errors
+				t.Export(append(selectedReplicas, selectedClients...), filename)
+				pages.SwitchToPage("main page")
+			}
+		}
+	})
+	form.AddButton("Cancel", func() {
+		pages.SwitchToPage("main page")
+	})
+	pages.AddPage("export box", modal(form, 30, 8), true, false)
 }
 
 func NewReplicaClientSelections(t *LatencyTable) *tview.Flex {
@@ -308,7 +339,9 @@ func NewReplicaClientSelections(t *LatencyTable) *tview.Flex {
 
 func RunUI(t *LatencyTable) error {
 	s := NewReplicaClientSelections(t)
-	application = tview.NewApplication().SetRoot(s, true).EnableMouse(true)
+	pages = tview.NewPages().AddPage("main page", s, true, true)
+	NewExportBox(t)
+	application = tview.NewApplication().SetRoot(pages, true).EnableMouse(true)
 
 	i := 0
 	ps := []tview.Primitive{replicasPr, clientsPr, protocolPr}
@@ -321,7 +354,18 @@ func RunUI(t *LatencyTable) error {
 	lt.SetLabel("Latency Table ")
 	lt.SetText(t.String())
 
+	s.SetMouseCapture(func(a tview.MouseAction, e *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
+		if p, _ := pages.GetFrontPage(); p == "export box" {
+			return a, nil
+		}
+		return a, e
+	})
+
 	application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if p, _ := pages.GetFrontPage(); p == "export box" {
+			return event
+		}
+
 		switch key := event.Key(); key {
 		case tcell.KeyEsc:
 			if !shown {
@@ -329,7 +373,7 @@ func RunUI(t *LatencyTable) error {
 				application.SetRoot(lt, true)
 			} else {
 				shown = false
-				application.SetRoot(s, true)
+				application.SetRoot(pages, true)
 			}
 		case tcell.KeyTab:
 			i = (i + 1) % len(ps)
@@ -337,6 +381,8 @@ func RunUI(t *LatencyTable) error {
 			return nil
 		}
 		switch key := event.Rune(); key {
+		case 'e':
+			pages.ShowPage("export box")
 		case 'r':
 			application.SetFocus(replicasPr)
 		case 'c':

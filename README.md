@@ -20,4 +20,6 @@ It supports mouse events and the following hotkeys:
 
 - __Tab__: switch the focus
 - __p__: toggle the protocol
+- __Esc__: print the current latency table
+- __e__: export latency table for the selected replicas and clients
 - __q__: quit

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -205,4 +206,29 @@ func (t *LatencyTable) String() string {
 		i++
 	}
 	return s
+}
+
+func (t *LatencyTable) StringOf(rs []string) string {
+	s := ""
+	for _, r1 := range rs {
+		for _, r2 := range rs {
+			s += fmt.Sprintf("%v %v %0.0fms\n",
+				t.IdOf(r1), t.IdOf(r2), Mul(t.OneWayLatency(r1, r2), 2))
+		}
+	}
+	return s
+}
+
+func (t *LatencyTable) Export(rs []string, filename string) error {
+	nrs := []string{}
+	seen := map[string]struct{}{}
+
+	for _, r := range rs {
+		if _, exists := seen[r]; !exists {
+			seen[r] = struct{}{}
+			nrs = append(nrs, r)
+		}
+	}
+
+	return ioutil.WriteFile(filename, []byte(t.StringOf(nrs)), 0644)
 }
