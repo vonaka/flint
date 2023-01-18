@@ -101,7 +101,7 @@ func NewLatencyTableFromFile(latencyConf string) (*LatencyTable, error) {
 		if len(data) != 3 {
 			continue
 		}
-		add1, add2 := true, true
+		add1, add2 := true, data[0] != data[1]
 		for _, r := range t.regions {
 			if add1 && r == data[0] {
 				add1 = false

@@ -235,6 +235,41 @@ func NewExportBox(t *LatencyTable) {
 	pages.AddPage("export box", modal(form, 30, 8), true, false)
 }
 
+func NewImportBox(t *LatencyTable) {
+	filename := "latency.txt"
+	modal := func(p tview.Primitive, w, h int) tview.Primitive {
+		return tview.NewGrid().SetColumns(0, w, 0).SetRows(0, h, 0).AddItem(p, 1, 1, 1, 1, 0, 0, true)
+	}
+	var form *tview.Form
+	form = tview.NewForm().AddInputField("Filename", filename, 30, nil, func(f string) {
+		filename = f
+		if form.GetFormItemCount() >= 2 {
+			form.RemoveFormItem(1)
+		}
+	})
+	form.SetBorder(true).SetTitle("Import latency table")
+	form.SetLabelColor(tcell.ColorWhite)
+	form.SetFieldTextColor(tcell.ColorWhite)
+	form.SetFieldBackgroundColor(tcell.ColorGrey)
+	form.AddButton("Import", func() {
+		if filename != "" {
+			if t, err := NewLatencyTableFromFile(filename); err == nil {
+				application.Stop()
+				defer RunUI(t)
+			} else {
+				if form.GetFormItemCount() >= 2 {
+					form.RemoveFormItem(1)
+				}
+				form.AddTextView("Error", err.Error(), 40, 2, false, true)
+			}
+		}
+	})
+	form.AddButton("Cancel", func() {
+		pages.SwitchToPage("main page")
+	})
+	pages.AddPage("import box", modal(form, 40, 10), true, false)
+}
+
 func NewReplicaClientSelections(t *LatencyTable) *tview.Flex {
 	rs := Regions("Replicas", t, func(rs map[string]struct{}) {
 		i := 0
@@ -341,6 +376,7 @@ func RunUI(t *LatencyTable) error {
 	s := NewReplicaClientSelections(t)
 	pages = tview.NewPages().AddPage("main page", s, true, true)
 	NewExportBox(t)
+	NewImportBox(t)
 	application = tview.NewApplication().SetRoot(pages, true).EnableMouse(true)
 
 	i := 0
@@ -355,14 +391,14 @@ func RunUI(t *LatencyTable) error {
 	lt.SetText(t.String())
 
 	s.SetMouseCapture(func(a tview.MouseAction, e *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
-		if p, _ := pages.GetFrontPage(); p == "export box" {
+		if p, _ := pages.GetFrontPage(); p != "main page" {
 			return a, nil
 		}
 		return a, e
 	})
 
 	application.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if p, _ := pages.GetFrontPage(); p == "export box" {
+		if p, _ := pages.GetFrontPage(); p != "main page" {
 			return event
 		}
 
@@ -383,6 +419,8 @@ func RunUI(t *LatencyTable) error {
 		switch key := event.Rune(); key {
 		case 'e':
 			pages.ShowPage("export box")
+		case 'i':
+			pages.ShowPage("import box")
 		case 'r':
 			application.SetFocus(replicasPr)
 		case 'c':
