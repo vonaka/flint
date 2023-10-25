@@ -7,6 +7,13 @@ Flint computes expected latencies for the selected set of AWS clients using diff
 Flint imports latency table from [cloudping](https://www.cloudping.co/grid/p_90/timeframe/1D)
 with the 90th percentile and a single day timeframe. One can change the link in ![config.go](config.go).
 
+## Supported protocols
+
+- SwiftPaxos
+- Paxos
+- N<sup>2</sup>Paxos (an all-to-all variant of Paxos)
+- CURP (over N<sup>2</sup>Paxos)
+
 ## Installation
 
 ```bash
