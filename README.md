@@ -24,3 +24,8 @@ It supports mouse events and the following hotkeys:
 - __e__: export latency table for the selected replicas and clients
 - __i__: import latency table from file
 - __q__: quit
+
+Instead of going through cloudping, flint can be launched with a provided latency table via `-l`
+command-line option. See [latency_table_example.txt][latency] for an example of latency table configuration file.
+
+[latency]: latency_table_example.txt
