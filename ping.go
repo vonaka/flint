@@ -48,16 +48,20 @@ func NewLatencyTable() (*LatencyTable, error) {
 		return nil, err
 	}
 
+	seen := make(map[string]struct{})
 	doc.Find("th").Each(func(_ int, s *goquery.Selection) {
-		if s.HasClass("region_title rotate") {
+		if s.HasClass("region_title") {
 			region := s.Text()
-			t.regions = append(t.regions, region)
-			if strings.Contains(region, " us-") {
-				t.us[region] = struct{}{}
-			} else if strings.Contains(region, " ap-") {
-				t.asia[region] = struct{}{}
-			} else if strings.Contains(region, " eu-") {
-				t.europe[region] = struct{}{}
+			if _, exists := seen[region]; !exists {
+				seen[region] = struct{}{}
+				t.regions = append(t.regions, region)
+				if strings.Contains(region, " us-") {
+					t.us[region] = struct{}{}
+				} else if strings.Contains(region, " ap-") {
+					t.asia[region] = struct{}{}
+				} else if strings.Contains(region, " eu-") {
+					t.europe[region] = struct{}{}
+				}
 			}
 		}
 	})
