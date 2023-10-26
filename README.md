@@ -1,4 +1,5 @@
 # Flint
+[![Go Report Card](https://goreportcard.com/badge/github.com/vonaka/flint)](https://goreportcard.com/report/github.com/vonaka/flint)
 
 Flint computes expected latencies for the selected set of AWS clients using different replication protocols.
 
