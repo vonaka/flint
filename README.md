@@ -11,7 +11,7 @@ command-line option. See [latency_table_example.txt][latency] for an example of 
 
 ## Supported protocols
 
-- SwiftPaxos
+- SwiftPaxos (only with fixed fast quorums)
 - Paxos
 - N<sup>2</sup>Paxos (an all-to-all variant of Paxos)
 - CURP (over N<sup>2</sup>Paxos)
