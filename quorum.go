@@ -15,6 +15,17 @@ var (
 	}
 )
 
+func GetNotInFilter(rs []string) QuorumFilter {
+	return func(r string, _ []string) bool {
+		for _, s := range rs {
+			if r == s {
+				return false
+			}
+		}
+		return true
+	}
+}
+
 func (q Quorum) Equals(q2 Quorum) bool {
 	if len(q) != len(q2) {
 		return false

@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -226,6 +228,38 @@ func NewExportBox(t *LatencyTable) {
 				// TODO: check errors
 				t.Export(append(selectedReplicas, selectedClients...), filename)
 				pages.SwitchToPage("main page")
+
+				proxies := "proxies.conf"
+				os.Remove(proxies)
+				str := ""
+				for _, r := range selectedReplicas {
+					str += "server_alias " + t.IdOf(r) + "\n"
+					for _, c := range selectedClients {
+						ls := t.IdOf(Client(c).ClosestReplica(selectedReplicas, t))
+						if ls == t.IdOf(r) {
+							str += t.IdOf(c)
+							if ls == t.IdOf(c) {
+								str += " (local)"
+							}
+							str += "\n"
+						}
+					}
+					str += "\n"
+				}
+				ioutil.WriteFile(proxies, []byte(str), 0644)
+
+				quorum := "config.info"
+				os.Remove(quorum)
+				str = ""
+				sp := NewSwiftPaxos(selectedReplicas, t)
+				q, l, _ := sp.SetAverageBestFixedQuorumAndLeader(selectedClients, NoFilter)
+				for _, r := range SliceOfQuorum(q) {
+					if t.IdOf(r) == t.IdOf(l) {
+						str += "l "
+					}
+					str += t.IdOf(r) + "\n"
+				}
+				ioutil.WriteFile(quorum, []byte(str), 0644)
 			}
 		}
 	})
