@@ -29,5 +29,6 @@ func main() {
 			return
 		}
 	}
+
 	RunUI(t)
 }
