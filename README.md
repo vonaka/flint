@@ -6,7 +6,7 @@ Flint computes expected latencies for the selected set of AWS clients using diff
 ![Screenshot](flint.png)
 
 Flint imports latency table from [cloudping](https://www.cloudping.co/grid/p_90/timeframe/1D)
-with the 90th percentile and a single day timeframe (see ![config.go](config.go)).
+with the 90th percentile and a single day timeframe (see [config.go](config.go)).
 Instead of going through cloudping, flint can be launched with a provided latency table via `-l`
 command-line option. See [latency_table_example.txt][latency] for an example of latency table configuration file.
 
