@@ -61,13 +61,16 @@ func NewLatencyTable() (*LatencyTable, error) {
 		}
 	})
 
+	if len(t.regions) == 0 {
+		return nil, errors.New("Something went wrong. It's likely that Cloudping was updated and is currently unsupported.")
+	}
+
 	for _, region := range t.regions {
 		t.latency[region] = make(map[string]float64)
 	}
 
 	i := 0
 	doc.Find("td").Each(func(_ int, s *goquery.Selection) {
-		fmt.Println(s.Text())
 		l, found := strings.CutSuffix(s.Text(), "ms")
 		if found {
 			r1, r2 := t.regions[i/len(t.regions)], t.regions[i%len(t.regions)]

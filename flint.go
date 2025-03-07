@@ -25,7 +25,7 @@ func main() {
 		t, err = NewLatencyTable()
 		if err != nil {
 			fmt.Println(err)
-			fmt.Println("Try calling fint with latency config file via -l option")
+			fmt.Println("Try calling flint with latency config file via -l option")
 			return
 		}
 	}
