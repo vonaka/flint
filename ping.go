@@ -48,20 +48,15 @@ func NewLatencyTable() (*LatencyTable, error) {
 		return nil, err
 	}
 
-	seen := make(map[string]struct{})
 	doc.Find("th").Each(func(_ int, s *goquery.Selection) {
-		if s.HasClass("region_title") {
-			region := s.Text()
-			if _, exists := seen[region]; !exists {
-				seen[region] = struct{}{}
-				t.regions = append(t.regions, region)
-				if strings.Contains(region, " us-") {
-					t.us[region] = struct{}{}
-				} else if strings.Contains(region, " ap-") {
-					t.asia[region] = struct{}{}
-				} else if strings.Contains(region, " eu-") {
-					t.europe[region] = struct{}{}
-				}
+		if region := s.Text(); region != "To \\ From" {
+			t.regions = append(t.regions, region)
+			if strings.Contains(region, " us-") {
+				t.us[region] = struct{}{}
+			} else if strings.Contains(region, " ap-") {
+				t.asia[region] = struct{}{}
+			} else if strings.Contains(region, " eu-") {
+				t.europe[region] = struct{}{}
 			}
 		}
 	})
@@ -72,12 +67,13 @@ func NewLatencyTable() (*LatencyTable, error) {
 
 	i := 0
 	doc.Find("td").Each(func(_ int, s *goquery.Selection) {
-		if s.HasClass("destination") || s.HasClass("source") {
-			return
+		fmt.Println(s.Text())
+		l, found := strings.CutSuffix(s.Text(), "ms")
+		if found {
+			r1, r2 := t.regions[i/len(t.regions)], t.regions[i%len(t.regions)]
+			t.latency[r1][r2], _ = strconv.ParseFloat(l, 64)
+			i++
 		}
-		r1, r2 := t.regions[i/len(t.regions)], t.regions[i%len(t.regions)]
-		t.latency[r1][r2], _ = strconv.ParseFloat(s.Text(), 64)
-		i++
 	})
 
 	return t, nil
