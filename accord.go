@@ -81,38 +81,39 @@ func (a *Accord) MediumPath() float64 {
 	return math.Min(6*a.toSlowQuorum, 2*a.toSlowQuorum+2*a.toFastQuorum)
 }
 
-// start(c', c) = max( d(c,r) - d(c',r) ),
-// for all r in the intersection of quorums of c and c'
-// convoy(c) = max_c'( start(c',c) + 4q(c') + d(c,c') )
 func (a *Accord) Convoy(client string) float64 {
-	fastQ := a.fastQuorum.Copy()
 	slowQ := a.slowQuorum.Copy()
-
-	// clock skew (ms)
-	epsilon := 5.0
-
+	toQuorum := a.toSlowQuorum
+	epsilon := 5.0 // clock skew (ms)
 	convoy := 0.0
+
+	// submission time of the conflicting transaction
+	start := toQuorum + epsilon + 1
+
+	// take max for each potentially coordinator of such conflicting transaction
 	for _, c := range a.rs {
 		if c == client {
 			continue
 		}
 
-		a.FindBestQuorums(c)
-		start := math.Inf(-1)
+		ok := false
+		newStart := 0.0
 		for r := range slowQ {
-			if _, exists := a.slowQuorum[r]; !exists {
-				continue
+			if start+a.latency.OneWayLatency(c, r) <= 2*toQuorum+a.latency.OneWayLatency(client, r) {
+				ok = true
+				break
+			} else {
+				ns := 2*toQuorum + a.latency.OneWayLatency(client, r) - a.latency.OneWayLatency(c, r)
+				newStart = math.Max(newStart, ns)
 			}
-			l := a.latency.OneWayLatency(client, r) - a.latency.OneWayLatency(c, r)
-			if _, exists := fastQ[r]; exists {
-				if l+epsilon+1+a.latency.OneWayLatency(c, r) <= 3*a.latency.OneWayLatency(client, r) {
-					l += epsilon + 1
-				} else {
-					l = 3*a.latency.OneWayLatency(client, r)
-				}
-			}
-			start = math.Max(start, l)
 		}
+
+		if !ok {
+			// if submutted at `start`, no process receives it before our Accept
+			start = newStart
+		}
+
+		a.FindBestQuorums(c)
 		l := start + a.MediumPath() + a.latency.OneWayLatency(client, c)
 		convoy = math.Max(convoy, l)
 	}
