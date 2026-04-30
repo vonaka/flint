@@ -113,7 +113,6 @@ func (a *Accord) Convoy(client string) float64 {
 			}
 			start = math.Max(start, l)
 		}
-		start += epsilon + 1
 		l := start + a.MediumPath() + a.latency.OneWayLatency(client, c)
 		convoy = math.Max(convoy, l)
 	}
