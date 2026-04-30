@@ -95,5 +95,5 @@ func (c *CurpN2Paxos) SetAverageBestLeader(cs []string) (string, float64) {
 }
 
 func (c *CurpN2Paxos) String() string {
-	return "Cu"
+	return "CURP²"
 }

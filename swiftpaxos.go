@@ -126,5 +126,5 @@ func (s *SwiftPaxos) SetAverageBestFixedQuorumAndLeader(cs []string, f QuorumFil
 }
 
 func (s *SwiftPaxos) String() string {
-	return "SP"
+	return "Swift"
 }

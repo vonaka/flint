@@ -96,6 +96,7 @@ func Redraw(t *LatencyTable) {
 	c := NewCurpN2Paxos(selectedReplicas, t)
 	p := NewPaxos(selectedReplicas, t, false)
 	n := NewPaxos(selectedReplicas, t, true)
+	a := NewAccord(selectedReplicas, t)
 	quorumSp, leaderSp, _ := sp.SetAverageBestFixedQuorumAndLeader(selectedClients, NoFilter)
 	leaderC, _ := c.SetAverageBestLeader(selectedClients)
 	leaderP, _ := p.SetAverageBestLeader(selectedClients)
@@ -103,14 +104,16 @@ func Redraw(t *LatencyTable) {
 
 	_, protocol := protocolPr.GetCurrentOption()
 	switch protocol {
+	case "Accord":
+		UpdateClientInfo("<leaderless>", nil, a, t, true, false, []Algorithm{sp, c, p, n})
 	case "SwiftPaxos":
-		UpdateClientInfo(leaderSp, quorumSp, sp, t, true, false, []Algorithm{c, p, n})
+		UpdateClientInfo(leaderSp, quorumSp, sp, t, true, false, []Algorithm{c, p, n, a})
 	case "Paxos":
-		UpdateClientInfo(leaderP, nil, p, t, false, false, []Algorithm{sp, c, n})
+		UpdateClientInfo(leaderP, nil, p, t, false, false, []Algorithm{sp, c, n, a})
 	case "N²Paxos":
-		UpdateClientInfo(leaderN, nil, n, t, false, true, []Algorithm{sp, c, p})
+		UpdateClientInfo(leaderN, nil, n, t, false, true, []Algorithm{sp, c, p, a})
 	case "CURP (N²Paxos)":
-		UpdateClientInfo(leaderC, nil, c, t, true, true, []Algorithm{sp, p, n})
+		UpdateClientInfo(leaderC, nil, c, t, true, true, []Algorithm{sp, p, n, a})
 	}
 }
 
@@ -130,10 +133,11 @@ func UpdateClientInfo(leader string, quorum Quorum, alg Algorithm, t *LatencyTab
 		quorumPr.SetText(fmt.Sprintf("%v", quorum))
 	} else {
 		quorumPr.Clear()
+		quorumPr.SetText("N/A")
 	}
 	latency := Average(alg, selectedClients, true)
 	leaderPr.SetText(fmt.Sprintf("%v", leader))
-	ls := fmt.Sprintf("%0.3f (best)\n%0.3f (worst)", latency, Average(alg, selectedClients, false))
+	ls := fmt.Sprintf("%0.3f (fast)\n%0.3f (slow)", latency, Average(alg, selectedClients, false))
 	if !printWorstL {
 		ls = fmt.Sprintf("%0.3f", latency)
 	}
@@ -181,6 +185,10 @@ func UpdateClientInfo(leader string, quorum Quorum, alg Algorithm, t *LatencyTab
 			} else {
 				ls += fmt.Sprintf("\t[red]%3.0f%%[white]", Faster(best, l))
 			}
+			for i := len(a.String()) - 4; i > 0; i-- {
+				ls += " "
+			}
+			ls += "  "
 		}
 
 		if best != worst {
@@ -196,6 +204,10 @@ func UpdateClientInfo(leader string, quorum Quorum, alg Algorithm, t *LatencyTab
 				} else {
 					ls += fmt.Sprintf("\t[red]%3.0f%%[white]", Faster(worst, l))
 				}
+				for i := len(a.String()) - 4; i > 0; i-- {
+					ls += " "
+				}
+				ls += "  "
 			}
 		}
 		if printClosest {
@@ -345,6 +357,9 @@ func NewReplicaClientSelections(t *LatencyTable) *tview.Flex {
 	d.AddOption("CURP (N²Paxos)", func() {
 		Redraw(t)
 	})
+	d.AddOption("Accord", func() {
+		Redraw(t)
+	})
 	d.SetCurrentOption(0)
 	d.SetLabelColor(tcell.ColorWhite)
 	d.SetFieldTextColor(tcell.ColorWhite)
@@ -354,7 +369,7 @@ func NewReplicaClientSelections(t *LatencyTable) *tview.Flex {
 	d.SetListStyles(styleU, styleS)
 
 	worstL := tview.NewCheckbox()
-	worstL.SetLabel("minimize worst latency ")
+	worstL.SetLabel("minimize worst-case latency ")
 	worstL.SetChangedFunc(func(bool) {
 		MinWorstLatency = worstL.IsChecked()
 		Redraw(t)
@@ -380,9 +395,9 @@ func NewReplicaClientSelections(t *LatencyTable) *tview.Flex {
 	}
 
 	f3 := tview.NewFlex()
-	quorumPr = newTextView("quorum")
-	leaderPr = newTextView("leader")
-	latencyPr = newTextView("latency")
+	quorumPr = newTextView("optimal fixed quorum")
+	leaderPr = newTextView("optimal leader")
+	latencyPr = newTextView("average latency")
 	f3.AddItem(quorumPr, 0, 4, false)
 	f3.AddItem(leaderPr, 0, 4, false)
 	f3.AddItem(latencyPr, 0, 2, false)

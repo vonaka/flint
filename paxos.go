@@ -70,7 +70,7 @@ func (p *Paxos) SetAverageBestLeader(cs []string) (string, float64) {
 
 func (p *Paxos) String() string {
 	if p.n2 {
-		return "N²"
+		return "Paxos²"
 	}
-	return "Pa"
+	return "Paxos"
 }

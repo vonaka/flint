@@ -15,6 +15,7 @@ command-line option. See [latency_table_example.txt][latency] for an example of 
 - Paxos
 - N<sup>2</sup>Paxos (an all-to-all variant of Paxos)
 - CURP (over N<sup>2</sup>Paxos)
+- Accord ([whitepaper](https://cwiki.apache.org/confluence/display/CASSANDRA/CEP-15%3A+General+Purpose+Transactions?preview=/188744725/188744736/Accord.pdf))
 
 ## Installation
 

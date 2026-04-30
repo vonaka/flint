@@ -26,6 +26,14 @@ func GetNotInFilter(rs []string) QuorumFilter {
 	}
 }
 
+func (q Quorum) Copy() Quorum {
+	q2 := make(map[string]struct{}, len(q))
+	for r := range q {
+		q2[r] = struct{}{}
+	}
+	return q2
+}
+
 func (q Quorum) Equals(q2 Quorum) bool {
 	if len(q) != len(q2) {
 		return false
